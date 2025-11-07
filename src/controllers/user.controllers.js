@@ -1,15 +1,28 @@
 import {asynchandler} from "../utils/asyncHandler.js"
+import { user } from "../models/user.model.js";
+const registerUser = asynchandler(async (req, res) => {
+   // get user details from frontend
+   const { fullName, email, username, password } = req.body || {};
 
-const registerUser=asynchandler(async(req,res)=>{
-   res.status(200).json({
-    message:"ok"
-   })
+   console.log('email',email);
+
+   //validation -not empty
+   if([fullName,email,username,password].some((fields)=>
+   field?.trim()==="")
+){
+   throw new ApiError(400,"All fields are required")
+}
+
+//check user already exists or not
+const existeduser=user.findOne({
+   $or:[{username},{email}]
+})
+if(existeduser){
+   throw new ApiError(409,"user already existes")
+}
+
 })
 
-// const Videouser=asynchandler(async(req,res)=>{
-//     res.status(200).{
-//         message:"the video has uploaded"
-//     }
-// })
 
-export {registerUser}
+
+export { registerUser };
