@@ -1,15 +1,21 @@
-//try catch async handler
-// Standard async handler utility for Express route handlers.
-// Usage:
-// import { asynchandler } from './asyncHandler.js'
-// router.get('/', asynchandler(async (req, res) => { ... }))
+// try catch async handler
 
-// Named export `asynchandler` to match imports in controllers.
-export const asynchandler = (requestHandler) => {
-  return (req, res, next) => {
-    Promise.resolve(requestHandler(req, res, next)).catch((error) => next(error));
-  };
-};
+// const asyncHandler = (fn) =>async(req,res,next)=>{
+//     try {
+//         await fn(req,res,next)
+//     } catch (error) {
+//         res.status(error.code||500).json({
+//             success:false,
+//             message:error.message
+//         })
+//     }
+// }
 
-// Backwards-compatible alias (optional) if some files import `asyncHandler`.
-export const asyncHandler = asynchandler;
+
+
+// Promise async handler - export as named `asyncHandler`
+export const asyncHandler = (requestHandler) => {
+    return (req, res, next) => {
+        Promise.resolve(requestHandler(req, res, next)).catch((error) => next(error))
+    }
+}

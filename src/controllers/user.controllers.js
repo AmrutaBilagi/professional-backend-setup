@@ -1,28 +1,76 @@
-import {asynchandler} from "../utils/asyncHandler.js"
-import { user } from "../models/user.model.js";
-const registerUser = asynchandler(async (req, res) => {
-   // get user details from frontend
-   const { fullName, email, username, password } = req.body || {};
+import { asyncHandler } from '../utils/asyncHandler.js'
+import  {User} from "../models/user.model.js"
+import {ApiError} from '../utils/apiError.js' ;
+import { response } from 'express';
+import { ApiResponse } from '../utils/ApiResponse.js';
+//import { use } from 'react';
 
-   console.log('email',email);
+// const registerUser = asyncHandler(async (req, res) => {
+//     // get user details from frontend
+//     const { fullName, email, username, password } = req.body 
+//     console.log('email', email)
 
-   //validation -not empty
-   if([fullName,email,username,password].some((fields)=>
-   field?.trim()==="")
-){
-   throw new ApiError(400,"All fields are required")
-}
+//     //validation - not empty 
+//     if ([fullName,email,username,password].some((field) => 
+//         field?.trim()==="")
+//     ) {
+//         throw new ApiError(400,"All fields are required")
+//     }
 
-//check user already exists or not
-const existeduser=user.findOne({
-   $or:[{username},{email}]
+//     //check whether the user already exists
+//     const existedUser = User.findOne({
+//         // $or:[{username},{email}]
+//         email 
+//     })
+//     console.log('existedUser', existedUser );
+//     if (existedUser) {
+
+//         throw new ApiError(409,"User with this username and email is already registed")
+
+//     }
+//     // else{
+//     //     console.log('User registered successfully'); 
+//     // }
+
+
+// })
+const registerUser=asyncHandler(async(req,res)=>{ 
+    const {fullName,email,username,password}=req.body||{} 
+    console.log('email',email) 
+    console.log("userdetails",username,email,fullName,password);
+
+    // if([fullName,email,username,password].some((field)=> {
+    //     field?.trim()==="" 
+    // }))
+    if (!fullName||!email||!username||!password){
+        throw new ApiError("all fields are required");
+    }
+    const existeduser = await User.findOne(
+        {
+           $or:[{username},{email}]
+        }
+    )
+    if(existeduser){
+        throw new ApiError("user is already exists");
+    }
+    const user=await User.create({username,email,fullName,password});
+   // const createdUser = await User.findById(user._id).select(
+    // Dont want this field
+   // "-password")
+    // if(!createdUser){
+    //     throw new ApiError(500,"something went wrong")
+    // }
+    return res.status(201)(
+    new ApiResponse(200, User, "User register successFully")
+  );
+    
+
 })
-if(existeduser){
-   throw new ApiError(409,"user already existes")
-}
-
-})
+// const loginUser=asyncHandler(async(req,res)=>{
+//     const {email,password}=req.body||{}
+//     console.log('email',email)
 
 
+// })
 
-export { registerUser };
+export { registerUser }

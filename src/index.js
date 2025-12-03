@@ -1,11 +1,10 @@
-import connectDB from "./db/db.js";
 import dotenv from "dotenv";
+import connectDB from "./db/db.js";
 import { app } from "./app.js";
 
-// Load environment from project root `.env` by default.
+// Load environment variables from project root `.env`
 dotenv.config();
 
-// connectDB is an async function — call it to get a Promise
 connectDB()
     .then(() => {
         app.listen(process.env.PORT || 8000, () => {
