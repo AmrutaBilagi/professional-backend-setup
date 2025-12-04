@@ -66,11 +66,26 @@ const registerUser=asyncHandler(async(req,res)=>{
     
 
 })
-// const loginUser=asyncHandler(async(req,res)=>{
-//     const {email,password}=req.body||{}
-//     console.log('email',email)
+const loginUser=asyncHandler(async(req,res)=>{
+   const {email,password}=req.body||{}
+ console.log('email',email)
+ if (!email||!password){
+        throw new ApiError("all fields are required");
+    }
+    console.log('password',password)
+    const existeduser = await User.findOne(
+        {
+           $or:[{email}]
+        }
+    )
+    if(!existeduser){
+        throw new ApiError("user not registered")
+    }
+    else{
+        throw new ApiError("user logged in succesfully!!")
+    }
 
 
-// })
+})
 
-export { registerUser }
+export { registerUser, loginUser}
