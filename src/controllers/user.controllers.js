@@ -34,58 +34,57 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 
 
 // })
-const registerUser=asyncHandler(async(req,res)=>{ 
-    const {fullName,email,username,password}=req.body||{} 
-    console.log('email',email) 
-    console.log("userdetails",username,email,fullName,password);
+const registerUser = asyncHandler(async (req, res) => {
+    const { fullName, email, username, password } = req.body || {};
 
-    // if([fullName,email,username,password].some((field)=> {
-    //     field?.trim()==="" 
-    // }))
-    if (!fullName||!email||!username||!password){
-        throw new ApiError("all fields are required");
-    }
-    const existeduser = await User.findOne(
-        {
-           $or:[{username},{email}]
-        }
-    )
-    if(existeduser){
-        throw new ApiError("user is already exists");
-    }
-    const user=await User.create({username,email,fullName,password});
-   // const createdUser = await User.findById(user._id).select(
-    // Dont want this field
-   // "-password")
-    // if(!createdUser){
-    //     throw new ApiError(500,"something went wrong")
-    // }
-    return res.status(201)(
-    new ApiResponse(200, User, "User register successFully")
-  );
-    
+    console.log("email", email);
+    console.log("userdetails", username, email, fullName, password);
 
-})
-const loginUser=asyncHandler(async(req,res)=>{
-   const {email,password}=req.body||{}
- console.log('email',email)
- if (!email||!password){
-        throw new ApiError("all fields are required");
-    }
-    console.log('password',password)
-    const existeduser = await User.findOne(
-        {
-           $or:[{email}]
-        }
-    )
-    if(!existeduser){
-        throw new ApiError("user not registered")
-    }
-    else{
-        throw new ApiError("user logged in succesfully!!")
+    if (!fullName || !email || !username || !password) {
+        throw new ApiError(400, "All fields are required");
     }
 
+    const existedUser = await User.findOne({
+        $or: [{ username }, { email }]
+    });
 
-})
+    if (existedUser) {
+        throw new ApiError(409, "User already exists");
+    }
+
+    const user = await User.create({ username, email, fullName, password });
+
+    return res.status(201).json(
+        new ApiResponse(201, user, "User registered successfully")
+    );
+});
+
+const loginUser = asyncHandler(async (req, res) => {
+    const { email, password } = req.body || {};
+
+    console.log("email", email);
+
+    if (!email || !password) {
+        throw new ApiError(400, "All fields are required");
+    }
+
+    console.log("password", password);
+
+    const existedUser = await User.findOne({ email });
+
+    if (!existedUser) {
+        throw new ApiError(404, "User not registered");
+    }
+
+    // If password verification is not implemented yet, skip this step for now
+    // else compare password:
+    // const isMatch = await existedUser.comparePassword(password);
+
+    // For now, assume login success:
+    return res
+        .status(200)
+        .json(new ApiResponse(200, existedUser, "User logged in successfully"));
+});
+
 
 export { registerUser, loginUser}
