@@ -1,8 +1,9 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
-import  {User} from "../models/user.model.js"
-import {ApiError} from '../utils/apiError.js' ;
+import { User } from "../models/user.model.js"
+import { ApiError } from '../utils/apiError.js';
 import { response } from 'express';
 import { ApiResponse } from '../utils/ApiResponse.js';
+import { comparePassword, hashPassword } from '../utils/password.js';
 //import { use } from 'react';
 
 // const registerUser = asyncHandler(async (req, res) => {
@@ -51,8 +52,10 @@ const registerUser = asyncHandler(async (req, res) => {
     if (existedUser) {
         throw new ApiError(409, "User already exists");
     }
+    const hasPassword = await hashPassword(password)
+    console.log("Hash password", hasPassword);
 
-    const user = await User.create({ username, email, fullName, password });
+    const user = await User.create({ username, email, fullName, password: hasPassword });
 
     return res.status(201).json(
         new ApiResponse(201, user, "User registered successfully")
@@ -71,20 +74,26 @@ const loginUser = asyncHandler(async (req, res) => {
     console.log("password", password);
 
     const existedUser = await User.findOne({ email });
+    console.log("Existed user", existedUser)
 
     if (!existedUser) {
         throw new ApiError(404, "User not registered");
     }
+    const isPasswordTrue = await comparePassword(password, existedUser.password)
+    console.log("Check Password true", isPasswordTrue);
 
     // If password verification is not implemented yet, skip this step for now
     // else compare password:
     // const isMatch = await existedUser.comparePassword(password);
 
     // For now, assume login success:
+    if (!isPasswordTrue) {
+        throw new ApiError(404, "Email and password not matched");
+    }
     return res
         .status(200)
         .json(new ApiResponse(200, existedUser, "User logged in successfully"));
 });
 
 
-export { registerUser, loginUser}
+export { registerUser, loginUser }
