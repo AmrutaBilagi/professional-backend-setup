@@ -4,6 +4,7 @@ import { ApiError } from '../utils/apiError.js';
 import { response } from 'express';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { comparePassword, hashPassword } from '../utils/password.js';
+import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
 //import { use } from 'react';
 
 // const registerUser = asyncHandler(async (req, res) => {
@@ -38,62 +39,95 @@ import { comparePassword, hashPassword } from '../utils/password.js';
 const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, username, password } = req.body || {};
 
-    console.log("email", email);
-    console.log("userdetails", username, email, fullName, password);
-
     if (!fullName || !email || !username || !password) {
         throw new ApiError(400, "All fields are required");
     }
 
-    const existedUser = await User.findOne({
-        $or: [{ username }, { email }]
-    });
-
+    const existedUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existedUser) {
         throw new ApiError(409, "User already exists");
     }
-    const hasPassword = await hashPassword(password)
-    console.log("Hash password", hasPassword);
 
-    const user = await User.create({ username, email, fullName, password: hasPassword });
+    const hashedPassword = await hashPassword(password);
+
+    const user = await User.create({
+        fullName,
+        email,
+        username,
+        password: hashedPassword
+    });
+
+    const accessToken = generateAccessToken(user._id);
+    console.log("Aceeesss Token",accessToken)
+    const refreshToken = generateRefreshToken(user._id);
+    console.log("Refresh Token",refreshToken)
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // secure http-only cookies
+    res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 60 * 60 * 1000  // 1 hour
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days
+    });
 
     return res.status(201).json(
-        new ApiResponse(201, user, "User registered successfully")
+        new ApiResponse(201, { user, accessToken }, "User registered successfully")
     );
 });
 
 const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body || {};
 
-    console.log("email", email);
-
     if (!email || !password) {
         throw new ApiError(400, "All fields are required");
     }
 
-    console.log("password", password);
-
-    const existedUser = await User.findOne({ email });
-    console.log("Existed user", existedUser)
-
-    if (!existedUser) {
+    const user = await User.findOne({ email });
+    if (!user) {
         throw new ApiError(404, "User not registered");
     }
-    const isPasswordTrue = await comparePassword(password, existedUser.password)
-    console.log("Check Password true", isPasswordTrue);
 
-    // If password verification is not implemented yet, skip this step for now
-    // else compare password:
-    // const isMatch = await existedUser.comparePassword(password);
-
-    // For now, assume login success:
-    if (!isPasswordTrue) {
-        throw new ApiError(404, "Email and password not matched");
+    const isPasswordCorrect = await comparePassword(password, user.password);
+    if (!isPasswordCorrect) {
+        throw new ApiError(401, "Invalid email or password");
     }
-    return res
-        .status(200)
-        .json(new ApiResponse(200, existedUser, "User logged in successfully"));
+
+    const accessToken = generateAccessToken(user._id);
+    console.log(accessToken)
+    const refreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 60 * 60 * 1000
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    return res.status(200).json(
+        new ApiResponse(200, { user, accessToken }, "User logged in successfully")
+    );
 });
+
 
 
 export { registerUser, loginUser }

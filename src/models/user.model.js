@@ -36,9 +36,9 @@ const userSchema = new Schema(
             type: String,
             required: [true, "password is required"]
         },
-        // refreshToken: {
-        //     type: String
-        // },
+        refreshToken: {
+            type: String
+        },
         // watchHistory: {
         //     type: Schema.Types.ObjectId,
         //     ref: "Video"
