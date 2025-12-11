@@ -20,9 +20,12 @@ app.use(cookieParser())
 
 //routes import 
 import UserRoutes from "./routes/user.routes.js"
+import BlogRoutes from "./routes/blog.route.js"
 
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
-app.use("/api/v1/users",UserRoutes)
+app.use("/api/v1/users", UserRoutes)
+app.use("/api/v1/blogs", BlogRoutes)
+
 export {app}
