@@ -4,7 +4,7 @@ const tweetSchema=new Schema(
     {
         id:{
             type:String,
-            required:true
+            // required:true
         },
         content:{
             type:String,
