@@ -5,37 +5,7 @@ import { response } from 'express';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { comparePassword, hashPassword } from '../utils/password.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
-//import { use } from 'react';
 
-// const registerUser = asyncHandler(async (req, res) => {
-//     // get user details from frontend
-//     const { fullName, email, username, password } = req.body 
-//     console.log('email', email)
-
-//     //validation - not empty 
-//     if ([fullName,email,username,password].some((field) => 
-//         field?.trim()==="")
-//     ) {
-//         throw new ApiError(400,"All fields are required")
-//     }
-
-//     //check whether the user already exists
-//     const existedUser = User.findOne({
-//         // $or:[{username},{email}]
-//         email 
-//     })
-//     console.log('existedUser', existedUser );
-//     if (existedUser) {
-
-//         throw new ApiError(409,"User with this username and email is already registed")
-
-//     }
-//     // else{
-//     //     console.log('User registered successfully'); 
-//     // }
-
-
-// })
 const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, username, password } = req.body || {};
 
@@ -127,7 +97,11 @@ const loginUser = asyncHandler(async (req, res) => {
         new ApiResponse(200, { user, accessToken }, "User logged in successfully")
     );
 });
+const getProfile = asyncHandler(async (req, res) => {
+    const user = req.user; // Already attached by authMiddleware
+    return res.status(200).json(
+        new ApiResponse(200, user, "Profile fetched successfully")
+    );
+});
 
-
-
-export { registerUser, loginUser }
+export { registerUser, loginUser, getProfile }

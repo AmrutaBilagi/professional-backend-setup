@@ -1,10 +1,22 @@
 import { Router } from "express";
+import {
+    createBlog,
+    getAllBlogs,
+    getBlogById,
+    updateBlog,
+    deleteBlog
+} from "../controllers/blogpost.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
-const router=Router()
+const router = Router();
 
-// Define your blog routes here
-router.get("/", (req, res) => {
-    res.send("Welcome to the Blog!");
-});
+// PUBLIC ROUTES
+router.get("/", getAllBlogs);
+router.get("/:id", getBlogById);
+
+// PROTECTED ROUTES
+router.post("/", authMiddleware, createBlog);
+router.put("/:id", authMiddleware, updateBlog);
+router.delete("/:id", authMiddleware, deleteBlog);
 
 export default router;
